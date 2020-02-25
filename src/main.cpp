@@ -1,3 +1,5 @@
+#define M5STACK_MPU6886
+
 #include <Arduino.h>
 #include <M5Stack.h>
 #include "FS.h"
@@ -7,6 +9,8 @@
 
 int SampleRate = 1000; //Bruges til at bestemme sampleraten. 1000 mikrosekunder = 1000samples/sekund
 
+static uint64_t lastIsr = 0;// debaunce til ButtonISR funktion.
+
 // Temp variables for accl and gyro data
 int16_t ax;
 int16_t ay;
@@ -15,39 +19,21 @@ int16_t gx;
 int16_t gy;
 int16_t gz;
 
-struct Butt {
-  const uint8_t PIN;
-  bool state;
-};
 
-bool doSample = false; //benyttes når funktionen skal sample en værdi
+const uint8_t buttPin = 39;
+bool runTimer = false; // Denne funktion er til for at sample, herved sættes den til "false" for ikke at starte med at sample før den bliver "true"
 
-Butt ButtonPressed(39,false); //Button A = 39, B = 38, C = 37 (Fra venstre mod højre)
+bool doSample = false; //Benyttes når funktionen skal sample en værdi
 
-uint8_t fileNum = 0;
+uint8_t fileNum = 0; // Denne sørge for at når der gemmes, gemmes den nye data i ny fil. Tæller den fil vi skriver til.  
 
-hw_timer_t * timer = NULL;
+hw_timer_t * timer = NULL; // Klargøring af timer
 
 
-void ButtonISR(){
-  static int32_t lastIsr = 0;
-  if ((millis() - lastIsr) > 500) {
-    ButtonPressed.state = !ButtonPressed.state;
-    if (ButtonPressed.state) {
-      startTimer();
-      Serial.println("Sampling");
-      M5.Lcd.setCursor(0, 20);
-      M5.Lcd.printf("Sampling");
-    } else {
-      fileNum++;
-      stopTimer();
-      M5.Lcd.setCursor(0, 20);
-      M5.Lcd.printf("Not sampling");
-      Serial.println("Not sampling");
-    }
-    lastIsr = millis();
-  }
+void IRAM_ATTR TimerISR(){ //IRAM_ATTR er for at gemme funktionen i hurtig memory, så funktionen hurtigere fungere. 
+  doSample = true; 
 }
+
 
 void startTimer() {
   timer = timerBegin(0, 80, true); // Start timer (params: timerNum, divider, countUp)
@@ -62,16 +48,33 @@ void stopTimer() {
   timer = NULL;
 }
 
-void TimerISR(){
-  doSample = true; 
+void IRAM_ATTR ButtonISR(){
+  if ((millis() - lastIsr) > 500) {
+    runTimer = !runTimer;
+    if (runTimer) {
+      startTimer();
+      Serial.println("Sampling");
+      M5.Lcd.setCursor(0, 20);
+      M5.Lcd.print("Sampling              ");
+    } else {
+      Serial.flush();
+      fileNum++;
+      stopTimer();
+      M5.Lcd.setCursor(0, 20);
+      M5.Lcd.print("Not sampling             ");
+      Serial.println("Not sampling");
+    }
+    lastIsr = millis();
+  }
 }
+
 
 void setupSD() {
   if(!SD.begin(4)){
       Serial.println("Card Mount Failed");
       //for(;;) {}
   } else {
-    Serial.println("SD mount succesfull")
+    Serial.println("SD mount succesfull");
   }
 }
 
@@ -91,8 +94,8 @@ void setupM5() {
 }
 
 void setupButton() {
-  pinMode(ButtonPressed.PIN, INPUT);
-  attachInterrupt(ButtonPressed.PIN, &ButtonISR, FALLING);
+  pinMode(buttPin, INPUT);
+  attachInterrupt(buttPin, &ButtonISR, FALLING);
 }
 
 void setup() {
@@ -103,8 +106,9 @@ void setup() {
 }
 
 void sampleAndSave() {
-  M5.IMU.getAccelAdc(int16_t* ax, int16_t* ay, int16_t* az);
-  M5.IMU.getGyroAdc(int16_t* gx, int16_t* gy, int16_t* gz);
+  doSample = false;
+  M5.IMU.getAccelAdc(&ax, &ay, &az);
+  M5.IMU.getGyroAdc(&gx, &gy, &gz);
   String dataString = String(ax);
   dataString = dataString + "," + String(ay);
   dataString = dataString + "," + String(az);
