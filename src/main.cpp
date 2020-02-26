@@ -91,6 +91,7 @@ void setupM5() {
   M5.Lcd.fillScreen(BLACK);
   M5.Lcd.setTextColor(GREEN , BLACK);
   M5.Lcd.setTextSize(2);
+  Serial.println("Not sampling");
 }
 
 void setupButton() {
