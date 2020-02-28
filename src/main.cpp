@@ -2,10 +2,7 @@
 
 #include <Arduino.h>
 #include <M5Stack.h>
-#include "FS.h"
 #include "SD.h"
-#include "SPI.h"
-#include <time.h> 
 
 int SampleRate = 1000; //Bruges til at bestemme sampleraten. 1000 mikrosekunder = 1000samples/sekund
 
@@ -91,7 +88,7 @@ void setupM5() {
   M5.Lcd.fillScreen(BLACK);
   M5.Lcd.setTextColor(GREEN , BLACK);
   M5.Lcd.setTextSize(2);
-  Serial.println("Not sampling");
+  M5.Lcd.print("Not sampling             ");
 }
 
 void setupButton() {
