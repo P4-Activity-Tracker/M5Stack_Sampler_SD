@@ -26,7 +26,7 @@ uint8_t fileNum = 0; // Denne sørge for at når der gemmes, gemmes den nye data
 
 hw_timer_t * timer = NULL; // Klargøring af timer
 
-
+/
 void IRAM_ATTR TimerISR(){ //IRAM_ATTR er for at gemme funktionen i hurtig memory, så funktionen hurtigere fungere. 
   doSample = true; 
 }
@@ -113,10 +113,10 @@ void sampleAndSave() {
   dataString = dataString + "," + String(gx);
   dataString = dataString + "," + String(gy);
   dataString = dataString + "," + String(gz);
-  File dataFile = SD.open("datalog" + String(fileNum) + ".txt", FILE_WRITE);
+  //File dataFile = SD.open("datalog" + String(fileNum) + ".txt", FILE_WRITE);
   if (dataFile) {
     dataFile.println(dataString);
-    dataFile.close();
+    //dataFile.close();
     Serial.println(dataString);
   }
   else {
