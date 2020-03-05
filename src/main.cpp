@@ -83,7 +83,13 @@ void disableSpeaker(){
 }
 
 void setupIMU(){
-   IMU.initMPU9250(); //Initialiserer vores MPU9250 chip 
+   	IMU.initMPU9250(); //Initialiserer vores MPU9250 chip 
+   	// Set accelerometer full-scale range configuration
+	uint8_t c = IMU.readByte(MPU9250_ADDRESS, ACCEL_CONFIG); // get current ACCEL_CONFIG register value
+	// c = c & ~0xE0; // Clear self-test bits [7:5]
+	c = c & ~0x18;  // Clear AFS bits [4:3]
+	c = c | 3 << 3; // Set full scale range for the accelerometer
+	IMU.writeByte(MPU9250_ADDRESS, ACCEL_CONFIG, c); // Write new ACCEL_CONFIG register value
 }
 
 void setupSD() { 
