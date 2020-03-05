@@ -164,16 +164,16 @@ void processDoSample() {
 	int16_t messurements[6];
 	//Sample accelerometer - Save to local variable
 	IMU.readAccelData(IMU.accelCount); //Læser x,y,z ADC værdierne
-	IMU.getAres(); // Get accelerometer skale saved to "Ares"
-	messurements[0] = IMU.accelCount[0]*IMU.aRes; //accelbias [0]
-	messurements[1]= IMU.accelCount[1]*IMU.aRes; //accelbias [1]
-	messurements[2]= IMU.accelCount[2]*IMU.aRes; //accelbias [2]
+	//IMU.getAres(); // Get accelerometer skale saved to "Ares"
+	messurements[0] = IMU.accelCount[0];//*IMU.aRes; //accelbias [0]
+	messurements[1] = IMU.accelCount[1];//*IMU.aRes; //accelbias [1]
+	messurements[2] = IMU.accelCount[2];//*IMU.aRes; //accelbias [2]
 	// Sample gyroscope - Save to local variable
 	IMU.readGyroData(IMU.gyroCount);
-	IMU.getGres(); // Get gyroskope skale saved to "Gres"
-	messurements[3] = IMU.gyroCount[0]*IMU.gRes; //gyrobias [0]
-	messurements[4] = IMU.gyroCount[1]*IMU.gRes; //gyrobias [1]
-	messurements[5] = IMU.gyroCount[2]*IMU.gRes; //gyrobias [2]
+	//IMU.getGres(); // Get gyroskope skale saved to "Gres"
+	messurements[3] = IMU.gyroCount[0];//*IMU.gRes; //gyrobias [0]
+	messurements[4] = IMU.gyroCount[1];//*IMU.gRes; //gyrobias [1]
+	messurements[5] = IMU.gyroCount[2];//*IMU.gRes; //gyrobias [2]
 	// Write to datafile
 	String dataString = "";
 	for (uint8_t i = 0; i < 6; i++) {
