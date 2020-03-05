@@ -24,7 +24,7 @@ volatile bool doSample = false;
 
 const uint8_t buttPin = 39; //Pinnumber til knap A på M5Stack
 
-int SampleRate = 1000000; //Bruges til at bestemme sampleraten. 1000 mikrosekunder = 1000 samples/sekund
+int SampleRate = 3333; //Bruges til at bestemme sampleraten. 1000 mikrosekunder = 1000 samples/sekund
 
 uint32_t lastISR = 0;
 
@@ -171,17 +171,28 @@ void processDoSample() {
 	//float messurements[6];
 	float messurements[6] = {0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F};
 	//Sample accelerometer - Save to local variable
+	uint32_t preAcc = micros();
 	IMU.readAccelData(IMU.accelCount); //Læser x,y,z ADC værdierne
+	uint32_t postAcc = micros();
 	IMU.getAres(); // Get accelerometer skale saved to "Ares"
 	messurements[0] = (float)IMU.accelCount[0]*IMU.aRes; //accelbias [0]
 	messurements[1] = (float)IMU.accelCount[1]*IMU.aRes; //accelbias [1]
 	messurements[2] = (float)IMU.accelCount[2]*IMU.aRes; //accelbias [2]
 	// Sample gyroscope - Save to local variable
+	uint32_t preGyro = micros();
 	IMU.readGyroData(IMU.gyroCount);
+	uint32_t postGyro = micros();
 	IMU.getGres(); // Get gyroskope skale saved to "Gres"
 	messurements[3] = (float)IMU.gyroCount[0]*IMU.gRes; //gyrobias [0]
 	messurements[4] = (float)IMU.gyroCount[1]*IMU.gRes; //gyrobias [1]
 	messurements[5] = (float)IMU.gyroCount[2]*IMU.gRes; //gyrobias [2]
+
+	Serial.print("Accelerometer sampling took: ");
+	Serial.println(postAcc - preAcc);	
+	Serial.print("Gyro sampling took: ");
+	Serial.println(postGyro - preGyro);
+	
+	
 	// Write to datafile
 	String dataString = "";
 	for (uint8_t i = 0; i < 6; i++) {
