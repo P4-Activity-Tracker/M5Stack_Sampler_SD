@@ -83,12 +83,21 @@ void disableSpeaker(){
 }
 
 void setupIMU(){
-   	IMU.initMPU9250(); //Initialiserer vores MPU9250 chip 
+	const uint8_t gyroScale = 3; //From 0 to 3, where 0 is 2G, 1 is 4G, 2 is 8G and 3 is 16G
+	const uint8_t accScale = 3; //From 0 to 3, where 0 is 250DPS,1 is 500DPS, 2 is 1000DPS and 3 is 2000DPS
+   	IMU.initMPU9250(); //Initialiserer vores MPU9250 chip
+	uint8_t c = IMU.readByte(MPU9250_ADDRESS, GYRO_CONFIG); // get current GYRO_CONFIG register value
+	// c = c & ~0xE0; // Clear self-test bits [7:5]
+	c = c & ~0x02; // Clear Fchoice bits [1:0]
+	c = c & ~0x18; // Clear AFS bits [4:3]
+	c = c | gyroScale << 3; // Set full scale range for the gyro
+	// c =| 0x00; // Set Fchoice for the gyro to 11 by writing its inverse to bits 1:0 of GYRO_CONFIG
+	IMU.writeByte(MPU9250_ADDRESS, GYRO_CONFIG, c); // Write new GYRO_CONFIG value to register 
    	// Set accelerometer full-scale range configuration
-	uint8_t c = IMU.readByte(MPU9250_ADDRESS, ACCEL_CONFIG); // get current ACCEL_CONFIG register value
+	c = IMU.readByte(MPU9250_ADDRESS, ACCEL_CONFIG); // get current ACCEL_CONFIG register value
 	// c = c & ~0xE0; // Clear self-test bits [7:5]
 	c = c & ~0x18;  // Clear AFS bits [4:3]
-	c = c | 3 << 3; // Set full scale range for the accelerometer
+	c = c | accScale << 3; // Set full scale range for the accelerometer
 	IMU.writeByte(MPU9250_ADDRESS, ACCEL_CONFIG, c); // Write new ACCEL_CONFIG register value
 }
 
