@@ -24,17 +24,13 @@ volatile bool doSample = false;
 
 const uint8_t buttPin = 39; //Pinnumber til knap A på M5Stack
 
-int SampleRate = 1000000; //Bruges til at bestemme sampleraten. 1000 mikrosekunder = 1000 samples/sekund
+int SampleRate = 10000; //Bruges til at bestemme sampleraten. 1000 mikrosekunder = 1000 samples/sekund
 
 uint32_t lastISR = 0;
 
-uint32_t sampleISR = 0;
-uint32_t sampleStart = 0;
-uint32_t sampleStop = 0;
 
 
 void IRAM_ATTR TimerISR () { // TimerISR
-	sampleISR = micros();
 	portENTER_CRITICAL_ISR(&mux); // Sikre at kun en kan tilgå variablen ad gangen
 	doSample = true;
 	portEXIT_CRITICAL_ISR(&mux);
@@ -164,7 +160,6 @@ void processStopSampling() {
 }
 
 void processDoSample() {
-	sampleStart = micros();
 	portENTER_CRITICAL(&mux);
 	doSample = false;
 	portEXIT_CRITICAL(&mux);
@@ -197,14 +192,6 @@ void processDoSample() {
 	} else {
 		dataFile.print(dataString);
 	}
-	//Serial.print(dataString);
-	sampleStop = micros();
-	Serial.print("Time from ISR to sample start: ");
-	Serial.println(sampleStart - sampleISR);
-	Serial.print("TIme from ISR to sample end: ");
-	Serial.println(sampleStop - sampleISR);
-	Serial.print("Time from sample start to sample end: ");
-	Serial.println(sampleStop - sampleStart);
 }
 
 void setup() {
