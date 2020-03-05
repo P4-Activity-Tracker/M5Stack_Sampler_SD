@@ -24,11 +24,17 @@ volatile bool doSample = false;
 
 const uint8_t buttPin = 39; //Pinnumber til knap A på M5Stack
 
-int SampleRate = 1000; //Bruges til at bestemme sampleraten. 1000 mikrosekunder = 1000 samples/sekund
+int SampleRate = 1000000; //Bruges til at bestemme sampleraten. 1000 mikrosekunder = 1000 samples/sekund
 
 uint32_t lastISR = 0;
 
+uint32_t sampleISR = 0;
+uint32_t sampleStart = 0;
+uint32_t sampleStop = 0;
+
+
 void IRAM_ATTR TimerISR () { // TimerISR
+	sampleISR = micros();
 	portENTER_CRITICAL_ISR(&mux); // Sikre at kun en kan tilgå variablen ad gangen
 	doSample = true;
 	portEXIT_CRITICAL_ISR(&mux);
@@ -77,7 +83,7 @@ void setupLCD(){ //Sætter skærmfarve, textfarve, textstørrelse og skriver "st
 }
 
 void disableSpeaker(){
-    dacWrite(25,0); //Skulle fjerne irrirterende speaker lyd
+	digitalWrite(25, 0);
 }
 
 void setupIMU(){
@@ -158,6 +164,7 @@ void processStopSampling() {
 }
 
 void processDoSample() {
+	sampleStart = micros();
 	portENTER_CRITICAL(&mux);
 	doSample = false;
 	portEXIT_CRITICAL(&mux);
@@ -178,7 +185,7 @@ void processDoSample() {
 	// Write to datafile
 	String dataString = "";
 	for (uint8_t i = 0; i < 6; i++) {
-		String number = String(messurements[i]);
+		String number = String(messurements[i], 8);
 		if (i==5) {
 			dataString = dataString + number + "\n"; 
 		} else {
@@ -190,6 +197,14 @@ void processDoSample() {
 	} else {
 		dataFile.print(dataString);
 	}
+	//Serial.print(dataString);
+	sampleStop = micros();
+	Serial.print("Time from ISR to sample start: ");
+	Serial.println(sampleStart - sampleISR);
+	Serial.print("TIme from ISR to sample end: ");
+	Serial.println(sampleStop - sampleISR);
+	Serial.print("Time from sample start to sample end: ");
+	Serial.println(sampleStop - sampleStart);
 }
 
 void setup() {
