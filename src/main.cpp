@@ -5,6 +5,8 @@
 #include "utility/MPU9250.h"
 #include "SPI.h"
 
+#define M5STACK_MPU9250
+
 const uint8_t maxLength = 100; // Max karakterlængde for display
 
 MPU9250 IMU; //Skaber en instans af typen MPU9250 der kaldes IMU. MPU9250 typen indeholder funktioner relateret til vores accelerometer/gyroskop
@@ -161,19 +163,22 @@ void processDoSample() {
 	portENTER_CRITICAL(&mux);
 	doSample = false;
 	portEXIT_CRITICAL(&mux);
-	float messurements[6];
+	//float messurements[6];
+	float messurements[6] = {0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F};
+	M5.IMU.getGyroData(&messurements[0],&messurements[1],&messurements[2]);
+  	M5.IMU.getAccelData(&messurements[3],&messurements[4],&messurements[5]);
 	//Sample accelerometer - Save to local variable
-	IMU.readAccelData(IMU.accelCount); //Læser x,y,z ADC værdierne
-	IMU.getAres(); // Get accelerometer skale saved to "Ares"
-	messurements[0] = (float)IMU.accelCount[0]*IMU.aRes; //accelbias [0]
-	messurements[1] = (float)IMU.accelCount[1]*IMU.aRes; //accelbias [1]
-	messurements[2] = (float)IMU.accelCount[2]*IMU.aRes; //accelbias [2]
-	// Sample gyroscope - Save to local variable
-	IMU.readGyroData(IMU.gyroCount);
-	IMU.getGres(); // Get gyroskope skale saved to "Gres"
-	messurements[3] = (float)IMU.gyroCount[0]*IMU.gRes; //gyrobias [0]
-	messurements[4] = (float)IMU.gyroCount[1]*IMU.gRes; //gyrobias [1]
-	messurements[5] = (float)IMU.gyroCount[2]*IMU.gRes; //gyrobias [2]
+	// IMU.readAccelData(IMU.accelCount); //Læser x,y,z ADC værdierne
+	// IMU.getAres(); // Get accelerometer skale saved to "Ares"
+	// messurements[0] = (float)IMU.accelCount[0]*IMU.aRes; //accelbias [0]
+	// messurements[1] = (float)IMU.accelCount[1]*IMU.aRes; //accelbias [1]
+	// messurements[2] = (float)IMU.accelCount[2]*IMU.aRes; //accelbias [2]
+	// // Sample gyroscope - Save to local variable
+	// IMU.readGyroData(IMU.gyroCount);
+	// IMU.getGres(); // Get gyroskope skale saved to "Gres"
+	// messurements[3] = (float)IMU.gyroCount[0]*IMU.gRes; //gyrobias [0]
+	// messurements[4] = (float)IMU.gyroCount[1]*IMU.gRes; //gyrobias [1]
+	// messurements[5] = (float)IMU.gyroCount[2]*IMU.gRes; //gyrobias [2]
 	// Write to datafile
 	String dataString = "";
 	for (uint8_t i = 0; i < 6; i++) {
@@ -193,7 +198,11 @@ void processDoSample() {
 
 void setup() {
     M5.begin(); // Initierer M5stack   
-    setupLCD(); // Start LCD skærm (farve, tekststørrelse, tekstfarve)
+	
+	M5.Power.begin();
+	M5.IMU.Init();
+
+	setupLCD(); // Start LCD skærm (farve, tekststørrelse, tekstfarve)
     writeToLCD("Starting...", 1);
     disableSpeaker(); // Sluk for M5Stack speaker
     setupIMU(); // Start IMU chip
